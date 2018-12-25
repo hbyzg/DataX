@@ -10,8 +10,7 @@ import java.util.Arrays;
  */
 public enum ModeType {
     Normal("normal"),
-    MultiVersionFixedColumn("multiVersionFixedColumn")
-    ;
+    MultiVersionFixedColumn("multiVersionFixedColumn")    ;
 
     private String mode;
 

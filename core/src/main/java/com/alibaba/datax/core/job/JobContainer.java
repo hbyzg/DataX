@@ -13,6 +13,7 @@ import com.alibaba.datax.common.util.StrUtil;
 import com.alibaba.datax.core.AbstractContainer;
 import com.alibaba.datax.core.Engine;
 import com.alibaba.datax.core.container.util.HookInvoker;
+import com.alibaba.datax.core.container.util.HttpRequestUtils;
 import com.alibaba.datax.core.container.util.JobAssignUtil;
 import com.alibaba.datax.core.job.scheduler.AbstractScheduler;
 import com.alibaba.datax.core.job.scheduler.processinner.StandAloneScheduler;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -642,10 +644,39 @@ public class JobContainer extends AbstractContainer {
                     communication.getLongCounter(CommunicationTool.TRANSFORMER_FILTER_RECORDS)
             ));
         }
-
+        sendtoSO( dateFormat.format(startTimeStamp),dateFormat.format(endTimeStamp),CommunicationTool.TRANSFORMER_SUCCEED_RECORDS);
 
     }
 
+
+ private  void sendtoSO(String startTime,String endTime,String runNum ){
+     /**
+      * addBackJobInfo
+      * @param token
+      * @param plugId
+      * @param jobId
+      * @param startTime
+      * @param endTime
+      * @param flag
+      * @param logInfo
+      * @param runNum
+      * @param errReasion
+      * @param lastRunTime
+      * @param lastUpdateTime
+      * @return
+      */
+ //this.configuration;
+
+     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+     String lastRunTime = df.format(new Date());
+
+    // HttpRequestUtils.httpGet()
+
+
+
+
+
+ }
     /**
      * reader job的初始化，返回Reader.Job
      *
