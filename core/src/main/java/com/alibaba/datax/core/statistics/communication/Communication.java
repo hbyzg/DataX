@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * DataX所有的状态及统计信息交互类，job、taskGroup、task等的消息汇报都走该类
  */
 public class Communication extends BaseObject implements Cloneable {
+
     /**
      * 所有的数值key-value对 *
      */

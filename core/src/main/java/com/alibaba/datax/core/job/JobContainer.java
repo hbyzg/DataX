@@ -29,15 +29,14 @@ import com.alibaba.datax.core.util.container.CoreConstant;
 import com.alibaba.datax.core.util.container.LoadUtil;
 import com.alibaba.datax.dataxservice.face.domain.enums.ExecuteMode;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by jingxing on 14-8-24.
@@ -51,6 +50,8 @@ public class JobContainer extends AbstractContainer {
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat(
             "yyyy-MM-dd HH:mm:ss");
+    private static final String DATA = "data";
+    private static final String APP_TOKEN = "app_token";
 
     private ClassLoaderSwapper classLoaderSwapper = ClassLoaderSwapper
             .newCurrentThreadClassLoaderSwapper();
@@ -103,7 +104,7 @@ public class JobContainer extends AbstractContainer {
         try {
             this.startTimeStamp = System.currentTimeMillis();
             isDryRun = configuration.getBool(CoreConstant.DATAX_JOB_SETTING_DRYRUN, false);
-            if(isDryRun) {
+            if (isDryRun) {
                 LOG.info("jobContainer starts to do preCheck ...");
                 this.preCheck();
             } else {
@@ -164,7 +165,7 @@ public class JobContainer extends AbstractContainer {
             throw DataXException.asDataXException(
                     FrameworkErrorCode.RUNTIME_ERROR, e);
         } finally {
-            if(!isDryRun) {
+            if (!isDryRun) {
 
                 this.destroy();
                 this.endTimeStamp = System.currentTimeMillis();
@@ -314,7 +315,7 @@ public class JobContainer extends AbstractContainer {
     private void preHandle() {
         String handlerPluginTypeStr = this.configuration.getString(
                 CoreConstant.DATAX_JOB_PREHANDLER_PLUGINTYPE);
-        if(!StringUtils.isNotEmpty(handlerPluginTypeStr)){
+        if (!StringUtils.isNotEmpty(handlerPluginTypeStr)) {
             return;
         }
         PluginType handlerPluginType;
@@ -350,7 +351,7 @@ public class JobContainer extends AbstractContainer {
         String handlerPluginTypeStr = this.configuration.getString(
                 CoreConstant.DATAX_JOB_POSTHANDLER_PLUGINTYPE);
 
-        if(!StringUtils.isNotEmpty(handlerPluginTypeStr)){
+        if (!StringUtils.isNotEmpty(handlerPluginTypeStr)) {
             return;
         }
         PluginType handlerPluginType;
@@ -400,7 +401,7 @@ public class JobContainer extends AbstractContainer {
 
         List<Configuration> transformerList = this.configuration.getListConfiguration(CoreConstant.DATAX_JOB_CONTENT_TRANSFORMER);
 
-        LOG.debug("transformer configuration: "+ JSON.toJSONString(transformerList));
+        LOG.debug("transformer configuration: " + JSON.toJSONString(transformerList));
         /**
          * 输入是reader和writer的parameter list，输出是content下面元素的list
          */
@@ -408,7 +409,7 @@ public class JobContainer extends AbstractContainer {
                 readerTaskConfigs, writerTaskConfigs, transformerList);
 
 
-        LOG.debug("contentConfig configuration: "+ JSON.toJSONString(contentConfig));
+        LOG.debug("contentConfig configuration: " + JSON.toJSONString(contentConfig));
 
         this.configuration.set(CoreConstant.DATAX_JOB_CONTENT, contentConfig);
 
@@ -515,7 +516,7 @@ public class JobContainer extends AbstractContainer {
         ExecuteMode executeMode = null;
         AbstractScheduler scheduler;
         try {
-        	executeMode = ExecuteMode.STANDALONE;
+            executeMode = ExecuteMode.STANDALONE;
             scheduler = initStandaloneScheduler(this.configuration);
 
             //设置 executeMode
@@ -644,39 +645,75 @@ public class JobContainer extends AbstractContainer {
                     communication.getLongCounter(CommunicationTool.TRANSFORMER_FILTER_RECORDS)
             ));
         }
-        sendtoSO( dateFormat.format(startTimeStamp),dateFormat.format(endTimeStamp),CommunicationTool.TRANSFORMER_SUCCEED_RECORDS);
+        sendtoSO(dateFormat.format(startTimeStamp), dateFormat.format(endTimeStamp), CommunicationTool.TRANSFORMER_SUCCEED_RECORDS);
 
     }
 
 
- private  void sendtoSO(String startTime,String endTime,String runNum ){
-     /**
-      * addBackJobInfo
-      * @param token
-      * @param plugId
-      * @param jobId
-      * @param startTime
-      * @param endTime
-      * @param flag
-      * @param logInfo
-      * @param runNum
-      * @param errReasion
-      * @param lastRunTime
-      * @param lastUpdateTime
-      * @return
-      */
- //this.configuration;
+    private void sendtoSO(String startTime, String endTime, String runNum) {
+        /**
+         * addBackJobInfo
+         * @param token
+         * @param plugId
+         * @param jobId
+         * @param startTime
+         * @param endTime
+         * @param flag
+         * @param logInfo
+         * @param runNum
+         * @param errReasion
+         * @param lastRunTime
+         * @param lastUpdateTime
+         * @return
+         */
+        //this.configuration;
 
-     SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-     String lastRunTime = df.format(new Date());
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String lastRunTime = df.format(new Date());
+        String jobId =  configuration.getString(CommunicationTool.SO_JOB_ID);
+        if(jobId==null || "null".equals(jobId) ){
+            configuration.set(CommunicationTool.SO_JOB_ID,"1");
+        }
+        String plugId =  configuration.getString(CommunicationTool.SO_PLUG_ID);
+        String clientId =  configuration.getString(CommunicationTool.JOB_CLIENT_ID);
+        String clientSecret = configuration.getString(CommunicationTool.SO_CLIENT_SECRET);
+        String serverUrl = configuration.getString(CommunicationTool.SO_SERVER_URL);
+        String token = "";
+        String url = serverUrl + "/appauth/token/getToken?clientId=" + clientId + "&clientSecret=" + clientSecret + "";
+        JSONObject json = HttpRequestUtils.httpGet(url, null);
+        if (json != null) {
+            if (json.get(DATA) == null) {
+                LOG.error("DATA is null" );
+                return;
+            }
+            LOG.info("获取token");
+            token =   JSONObject.parseObject(json.get(DATA).toString()).get(APP_TOKEN).toString();
+            LOG.info(token);
+            if(token ==null){
+                LOG.error("token is null" );
+                return;
+            }
 
-    // HttpRequestUtils.httpGet()
+            Map<String,String> map = new HashMap<String, String>(2);
+            Map<String,String> mapHead = new HashMap<String, String>(2);
+            map.put("jobId",jobId);
+            map.put("plugId",plugId);
+            map.put("startTime",startTime);
+            map.put("endTime",endTime);
+            map.put("flag","1");
+            map.put("runNum",runNum);
+            mapHead.put("token",token);
+            json=   HttpRequestUtils.httpPost(url,map,mapHead);
+            if(json !=null) {
+                LOG.info(" post 到SO系统结果：" + json.toString());
+            }
+            else
+            {
+                LOG.error("post is null" );
+            }
+        }
+    }
 
-
-
-
-
- }
     /**
      * reader job的初始化，返回Reader.Job
      *
@@ -828,7 +865,7 @@ public class JobContainer extends AbstractContainer {
             taskConfig.set(CoreConstant.JOB_WRITER_PARAMETER,
                     writerTasksConfigs.get(i));
 
-            if(transformerConfigs!=null && transformerConfigs.size()>0){
+            if (transformerConfigs != null && transformerConfigs.size() > 0) {
                 taskConfig.set(CoreConstant.JOB_TRANSFORMER, transformerConfigs);
             }
 

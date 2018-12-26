@@ -49,6 +49,12 @@ public final class CommunicationTool {
     public static final String TRANSFORMER_FILTER_RECORDS = "totalTransformerFilterRecords";
     public static final String TRANSFORMER_NAME_PREFIX = "usedTimeByTransformer_";
 
+    public static final String SO_JOB_ID = "so.jobId";
+    public static final String JOB_CLIENT_ID = "so.clientId";
+    public static final String SO_CLIENT_SECRET = "so.clientSecret";
+    public static final String SO_SERVER_URL = "so.serverUrl";
+    public static final String SO_PLUG_ID = "so.plugId";
+
     public static Communication getReportCommunication(Communication now, Communication old, int totalStage) {
         Validate.isTrue(now != null && old != null,
                 "为汇报准备的新旧metric不能为null");
