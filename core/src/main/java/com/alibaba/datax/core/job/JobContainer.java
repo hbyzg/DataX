@@ -651,33 +651,22 @@ public class JobContainer extends AbstractContainer {
 
 
     private void sendtoSO(String startTime, String endTime, String runNum) {
-        /**
-         * addBackJobInfo
-         * @param token
-         * @param plugId
-         * @param jobId
-         * @param startTime
-         * @param endTime
-         * @param flag
-         * @param logInfo
-         * @param runNum
-         * @param errReasion
-         * @param lastRunTime
-         * @param lastUpdateTime
-         * @return
-         */
-        //this.configuration;
-
+        LOG.info("sendtoSO bein");
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String lastRunTime = df.format(new Date());
+
         String jobId =  configuration.getString(CommunicationTool.SO_JOB_ID);
         if(jobId==null || "null".equals(jobId) ){
             configuration.set(CommunicationTool.SO_JOB_ID,"1");
         }
+        LOG.info("jobId:{}",jobId);
         String plugId =  configuration.getString(CommunicationTool.SO_PLUG_ID);
         String clientId =  configuration.getString(CommunicationTool.JOB_CLIENT_ID);
         String clientSecret = configuration.getString(CommunicationTool.SO_CLIENT_SECRET);
         String serverUrl = configuration.getString(CommunicationTool.SO_SERVER_URL);
+        LOG.info("serverUrl:{}",serverUrl);
+
+        LOG.info("configuration:{}",configuration.toString());
         String token = "";
         String url = serverUrl + "/appauth/token/getToken?clientId=" + clientId + "&clientSecret=" + clientSecret + "";
         JSONObject json = HttpRequestUtils.httpGet(url, null);
