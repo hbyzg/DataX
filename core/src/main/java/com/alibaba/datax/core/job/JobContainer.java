@@ -645,8 +645,11 @@ public class JobContainer extends AbstractContainer {
                     communication.getLongCounter(CommunicationTool.TRANSFORMER_FILTER_RECORDS)
             ));
         }
-        sendtoSO(dateFormat.format(startTimeStamp), dateFormat.format(endTimeStamp), CommunicationTool.TRANSFORMER_SUCCEED_RECORDS);
-
+        String sojobId =  configuration.getString(CommunicationTool.SO_JOB_ID);
+        if(sojobId!=null) {
+            sendtoSO(dateFormat.format(startTimeStamp), dateFormat.format(endTimeStamp),
+                    ""+communication.getLongCounter(CommunicationTool.TRANSFORMER_SUCCEED_RECORDS));
+        }
     }
 
 
@@ -664,9 +667,11 @@ public class JobContainer extends AbstractContainer {
         LOG.info("clientId:{}",clientId);
         LOG.info("clientSecret:{}",clientSecret);
         String token = "";
-        String url = serverUrl + "/appauth/token/getToken?clientId=" + clientId + "&clientSecret=" + clientSecret + "";
+        String url = serverUrl + "/appauth/token/getToken?clientid=" + clientId + "&clientsecret=" + clientSecret + "";
+        LOG.info("url:{}",url);
         JSONObject json = HttpRequestUtils.httpGet(url, null);
         if (json != null) {
+            LOG.info("json:{}",json);
             if (json.get(DATA) == null) {
                 LOG.error("DATA is null" );
                 return;
@@ -689,7 +694,7 @@ public class JobContainer extends AbstractContainer {
             map.put("flag","1");
             map.put("runNum",runNum);
             mapHead.put("token",token);
-            url=serverUrl +"/ApiManage/addBackJobInfo";
+            url=serverUrl +"/bigdata-etl/ApiManage/addBackJobInfo";
             LOG.info("new url :{}",url);
             json=   HttpRequestUtils.httpPost(url,map,mapHead);
             if(json !=null) {

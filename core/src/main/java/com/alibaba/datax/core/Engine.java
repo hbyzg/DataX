@@ -120,6 +120,10 @@ public class Engine {
     }
 
     public static void entry(final String[] args) throws Throwable {
+        for(int i =0;i<args.length;i++){
+            LOG.info("输入参数：{}" ,args[i]);
+        }
+
         Options options = new Options();
         options.addOption("job", true, "Job config.");
         options.addOption("jobid", true, "Job unique id.");
@@ -129,7 +133,10 @@ public class Engine {
         CommandLine cl = parser.parse(options, args);
 
         String jobPath = cl.getOptionValue("job");
-
+        if(jobPath ==null){
+            jobPath =args[4];
+        }
+        LOG.info("jobPath:{}",jobPath);
         // 如果用户没有明确指定jobid, 则 datax.py 会指定 jobid 默认值为-1
         String jobIdString = cl.getOptionValue("jobid");
         RUNTIME_MODE = cl.getOptionValue("mode");
