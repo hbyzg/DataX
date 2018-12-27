@@ -654,19 +654,15 @@ public class JobContainer extends AbstractContainer {
         LOG.info("sendtoSO bein");
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String lastRunTime = df.format(new Date());
-
         String jobId =  configuration.getString(CommunicationTool.SO_JOB_ID);
-        if(jobId==null || "null".equals(jobId) ){
-            configuration.set(CommunicationTool.SO_JOB_ID,"1");
-        }
-        LOG.info("jobId:{}",jobId);
         String plugId =  configuration.getString(CommunicationTool.SO_PLUG_ID);
         String clientId =  configuration.getString(CommunicationTool.JOB_CLIENT_ID);
         String clientSecret = configuration.getString(CommunicationTool.SO_CLIENT_SECRET);
         String serverUrl = configuration.getString(CommunicationTool.SO_SERVER_URL);
+        LOG.info("jobId:{}",jobId);
         LOG.info("serverUrl:{}",serverUrl);
-
-        LOG.info("configuration:{}",configuration.toString());
+        LOG.info("clientId:{}",clientId);
+        LOG.info("clientSecret:{}",clientSecret);
         String token = "";
         String url = serverUrl + "/appauth/token/getToken?clientId=" + clientId + "&clientSecret=" + clientSecret + "";
         JSONObject json = HttpRequestUtils.httpGet(url, null);
@@ -677,7 +673,7 @@ public class JobContainer extends AbstractContainer {
             }
             LOG.info("获取token");
             token =   JSONObject.parseObject(json.get(DATA).toString()).get(APP_TOKEN).toString();
-            LOG.info(token);
+            LOG.info("token:{}",token);
             if(token ==null){
                 LOG.error("token is null" );
                 return;
@@ -689,9 +685,12 @@ public class JobContainer extends AbstractContainer {
             map.put("plugId",plugId);
             map.put("startTime",startTime);
             map.put("endTime",endTime);
+            map.put("lastRunTime",lastRunTime);
             map.put("flag","1");
             map.put("runNum",runNum);
             mapHead.put("token",token);
+            url=serverUrl +"/ApiManage/addBackJobInfo";
+            LOG.info("new url :{}",url);
             json=   HttpRequestUtils.httpPost(url,map,mapHead);
             if(json !=null) {
                 LOG.info(" post 到SO系统结果：" + json.toString());
